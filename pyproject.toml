@@ -1,0 +1,29 @@
+[project]
+name = "cnpj-importer"
+version = "0.1.0"
+description = "Importador local de dados públicos de CNPJ"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "typer>=0.12.3",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.1",
+    "psycopg[binary]>=3.1.19",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2.0",
+    "ruff>=0.4.4",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
