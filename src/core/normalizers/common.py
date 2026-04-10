@@ -83,3 +83,26 @@ def compose_cnpj(cnpj_basico: str, cnpj_ordem: str, cnpj_dv: str) -> str:
         raise ValueError(f"DV do CNPJ inválido: {cnpj_dv}")
 
     return f"{basico}{ordem}{dv}"
+
+
+
+def compose_cpf(cpf: str | None) -> str | None:
+    digits = normalize_digits(cpf)
+    if digits is None:
+        return None
+
+    if len(digits) != 11:
+        raise ValueError(f"CPF inválido: {cpf}")
+
+    return digits
+
+
+def compose_cnpj_optional(cnpj: str | None) -> str | None:
+    digits = normalize_digits(cnpj)
+    if digits is None:
+        return None
+
+    if len(digits) != 14:
+        raise ValueError(f"CNPJ inválido: {cnpj}")
+
+    return digits

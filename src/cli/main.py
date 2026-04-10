@@ -6,6 +6,8 @@ from src.core.extracted_batch import summarize_extracted_batch, ExtractedBatchSu
     ExtractedBatchValidationError
 from src.core.extraction import prepare_extracted_batch, ExtractedBatchPreparationError
 from src.core.input_batch import summarize_input_batch, validate_input_batch, InputBatchSummary
+from src.core.required_files_validation import validate_required_files_structure, RequiredFilesStructureValidationError
+from src.core.normalization import normalize_required_files, NormalizationError, NormalizationSummary
 
 app = typer.Typer(help="Ferramenta local de importação de dados de CNPJ.")
 
@@ -25,8 +27,10 @@ def run() -> None:
     extracted_summary = _phase_validate_extracted(final_dir.name)
 
     typer.secho("[5/7] Validando estrutura dos arquivos obrigatórios...", fg=typer.colors.BLUE)
+    _phase_validate_required_files_structure(extracted_summary)
 
     typer.secho("[6/7] Normalizando dados...", fg=typer.colors.BLUE)
+    normalization_summary = _phase_normalize_required_files(extracted_summary)
 
     typer.secho("[5/7] Inserindo no banco de dados...", fg=typer.colors.BLUE)
 
@@ -126,6 +130,36 @@ def _phase_validate_extracted(reference: str | None = None) -> ExtractedBatchSum
 
     return summary
 
+
+
+def _phase_validate_required_files_structure(extracted_summary: ExtractedBatchSummary) -> None:
+    try:
+        validate_required_files_structure(
+            extracted_summary,
+            on_progress=lambda message: typer.secho(f"    - {message}", fg=typer.colors.GREEN),
+        )
+    except RequiredFilesStructureValidationError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+    typer.secho("    - Estrutura dos arquivos obrigatórios válida.", fg=typer.colors.GREEN)
+
+
+
+def _phase_normalize_required_files(extracted_summary: ExtractedBatchSummary) -> NormalizationSummary:
+    try:
+        summary = normalize_required_files(extracted_summary)
+    except NormalizationError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+    typer.secho("    - Normalização concluída.", fg=typer.colors.GREEN)
+    typer.secho(f"    - Empresas normalizadas: {summary.empresas_count}", fg=typer.colors.GREEN)
+    typer.secho(f"    - Estabelecimentos normalizados: {summary.estabelecimentos_count}", fg=typer.colors.GREEN)
+    typer.secho(f"    - Sócios normalizados: {summary.socios_count}", fg=typer.colors.GREEN)
+    typer.secho(f"    - Simples normalizados: {summary.simples_count}", fg=typer.colors.GREEN)
+
+    return summary
 
 
 
