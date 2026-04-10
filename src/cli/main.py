@@ -146,18 +146,25 @@ def _phase_validate_required_files_structure(extracted_summary: ExtractedBatchSu
 
 
 
-def _phase_normalize_required_files(extracted_summary: ExtractedBatchSummary) -> NormalizationSummary:
+def _phase_normalize_required_files(
+    extracted_summary: ExtractedBatchSummary,
+) -> NormalizationSummary:
     try:
-        summary = normalize_required_files(extracted_summary)
+        summary = normalize_required_files(
+            extracted_summary,
+            on_progress=lambda message: typer.secho(
+                f"    - {message}",
+                fg=typer.colors.GREEN,
+            ),
+        )
     except NormalizationError as exc:
         typer.secho(str(exc), fg=typer.colors.RED)
         raise typer.Exit(code=1)
 
-    typer.secho("    - Normalização concluída.", fg=typer.colors.GREEN)
-    typer.secho(f"    - Empresas normalizadas: {summary.empresas_count}", fg=typer.colors.GREEN)
-    typer.secho(f"    - Estabelecimentos normalizados: {summary.estabelecimentos_count}", fg=typer.colors.GREEN)
-    typer.secho(f"    - Sócios normalizados: {summary.socios_count}", fg=typer.colors.GREEN)
-    typer.secho(f"    - Simples normalizados: {summary.simples_count}", fg=typer.colors.GREEN)
+    typer.secho(
+        f"    - Normalização concluída. Total: {summary.total_count:,} linhas.",
+        fg=typer.colors.GREEN,
+    )
 
     return summary
 

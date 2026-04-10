@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal, InvalidOperation
-from typing import Optional
 
 
 def empty_to_none(value: str | None) -> str | None:
@@ -17,14 +16,44 @@ def normalize_text(value: str | None) -> str | None:
     value = empty_to_none(value)
     if value is None:
         return None
-    return value.strip()
+
+    return value
 
 
 def normalize_digits(value: str | None) -> str | None:
     value = empty_to_none(value)
     if value is None:
         return None
-    return "".join(ch for ch in value if ch.isdigit())
+
+    digits = "".join(ch for ch in value if ch.isdigit())
+    return digits or None
+
+
+def require_digits(
+    value: str | None,
+    *,
+    field_name: str,
+    expected_length: int | None = None,
+) -> str:
+    digits = normalize_digits(value)
+
+    if digits is None:
+        raise ValueError(f"{field_name} é obrigatório")
+
+    if expected_length is not None and len(digits) != expected_length:
+        raise ValueError(
+            f"{field_name} deve conter {expected_length} dígitos: {value}"
+        )
+
+    return digits
+
+
+def normalize_int(value: str | None) -> int | None:
+    digits = normalize_digits(value)
+    if digits is None:
+        return None
+
+    return int(digits)
 
 
 def normalize_decimal_br(value: str | None) -> Decimal | None:
@@ -41,54 +70,69 @@ def normalize_decimal_br(value: str | None) -> Decimal | None:
 
 
 def normalize_date_yyyymmdd(value: str | None) -> date | None:
-    value = empty_to_none(value)
-    if value is None:
+    digits = normalize_digits(value)
+
+    if digits is None or digits == "0":
         return None
 
-    digits = normalize_digits(value)
-    if digits is None or len(digits) != 8:
+    if len(digits) != 8:
         raise ValueError(f"Data inválida no formato YYYYMMDD: {value}")
 
     year = int(digits[0:4])
     month = int(digits[4:6])
     day = int(digits[6:8])
 
-    return date(year, month, day)
+    try:
+        return date(year, month, day)
+    except ValueError as exc:
+        raise ValueError(f"Data inválida no formato YYYYMMDD: {value}") from exc
 
 
-def normalize_int(value: str | None) -> int | None:
+def normalize_flag(value: str | None) -> bool | None:
     value = empty_to_none(value)
     if value is None:
         return None
 
-    digits = normalize_digits(value)
-    if digits is None:
-        return None
+    normalized = value.strip().upper()
 
-    return int(digits)
+    truthy = {"S", "SIM", "1", "Y", "YES", "T", "TRUE"}
+    falsy = {"N", "NAO", "NÃO", "0", "F", "FALSE", "NO"}
+
+    if normalized in truthy:
+        return True
+
+    if normalized in falsy:
+        return False
+
+    raise ValueError(f"Flag inválida: {value}")
 
 
 def compose_cnpj(cnpj_basico: str, cnpj_ordem: str, cnpj_dv: str) -> str:
-    basico = normalize_digits(cnpj_basico)
-    ordem = normalize_digits(cnpj_ordem)
-    dv = normalize_digits(cnpj_dv)
-
-    if basico is None or len(basico) != 8:
-        raise ValueError(f"CNPJ básico inválido: {cnpj_basico}")
-
-    if ordem is None or len(ordem) != 4:
-        raise ValueError(f"Ordem do CNPJ inválida: {cnpj_ordem}")
-
-    if dv is None or len(dv) != 2:
-        raise ValueError(f"DV do CNPJ inválido: {cnpj_dv}")
+    basico = require_digits(
+        cnpj_basico,
+        field_name="cnpj_basico",
+        expected_length=8,
+    )
+    ordem = require_digits(
+        cnpj_ordem,
+        field_name="cnpj_ordem",
+        expected_length=4,
+    )
+    dv = require_digits(
+        cnpj_dv,
+        field_name="cnpj_dv",
+        expected_length=2,
+    )
 
     return f"{basico}{ordem}{dv}"
-
 
 
 def compose_cpf(cpf: str | None) -> str | None:
     digits = normalize_digits(cpf)
     if digits is None:
+        return None
+
+    if set(digits) == {"0"}:
         return None
 
     if len(digits) != 11:
@@ -100,6 +144,9 @@ def compose_cpf(cpf: str | None) -> str | None:
 def compose_cnpj_optional(cnpj: str | None) -> str | None:
     digits = normalize_digits(cnpj)
     if digits is None:
+        return None
+
+    if set(digits) == {"0"}:
         return None
 
     if len(digits) != 14:
