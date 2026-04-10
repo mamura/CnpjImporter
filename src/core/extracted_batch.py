@@ -2,6 +2,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+class ExtractedBatchValidationError(Exception):
+    pass
+
+
+
 @dataclass
 class ExtractedBatchSummary:
     extracted_dir: Path
@@ -140,3 +145,13 @@ def summarize_extracted_batch(extracted_dir: Path) -> ExtractedBatchSummary:
         motivos=motivos,
         others=others,
     )
+
+
+
+def validate_extracted_batch(summary:ExtractedBatchSummary) -> None:
+    if summary.has_minimum_required_files:
+        return
+
+    missing_groups = ", ".join(summary.missing_required_groups)
+
+    raise ExtractedBatchValidationError(f"Lote extraído inválido. Grupos obrigatórios ausentes: {missing_groups}")

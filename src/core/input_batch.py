@@ -23,6 +23,7 @@ class InputBatchSummary:
         return None
 
 
+
 def list_input_files(input_dir: Path) -> list[Path]:
     if not input_dir.exists():
         raise FileNotFoundError(f"Pasta não encontrada: {input_dir}")
@@ -31,6 +32,7 @@ def list_input_files(input_dir: Path) -> list[Path]:
         raise NotADirectoryError(f"O caminho não é uma pasta: {input_dir}")
 
     return sorted([file for file in input_dir.iterdir() if file.is_file()])
+
 
 
 def summarize_input_batch(input_dir: Path) -> InputBatchSummary:
@@ -50,3 +52,14 @@ def summarize_input_batch(input_dir: Path) -> InputBatchSummary:
         zip_files=zip_files,
         other_files=other_files,
     )
+
+
+
+def validate_input_batch(summary: InputBatchSummary) -> None:
+    total_zip_files = summary.total_zip_files
+
+    if total_zip_files == 0:
+        raise ValueError("Nenhum arquivo zip encontrado na pasta de entrada.")
+
+    if total_zip_files > 1:
+        raise ValueError("Mais de um arquivo zip encontrado na pasta de entrada.")
