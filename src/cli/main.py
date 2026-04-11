@@ -6,7 +6,7 @@ from src.core.extracted_batch import summarize_extracted_batch, ExtractedBatchSu
     ExtractedBatchValidationError
 from src.core.extraction import prepare_extracted_batch, ExtractedBatchPreparationError
 from src.core.input_batch import summarize_input_batch, validate_input_batch, InputBatchSummary
-from src.core.percistence import PersistenceSummary, PersistenceError, persist_required_files
+from src.core.persistence import PersistenceSummary, PersistenceError, persist_required_files
 from src.core.required_files_validation import validate_required_files_structure, RequiredFilesStructureValidationError
 from src.core.normalization import normalize_required_files, NormalizationError, NormalizationSummary
 
