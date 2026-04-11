@@ -74,17 +74,40 @@ def _normalize_empresas_files(
     on_progress: Callable[[str], None] | None = None,
 ) -> int:
     total = 0
+    errors = 0
 
     for file_path in files:
         _report(on_progress, f"Normalizando EMPRESAS: {file_path.name}")
 
         for row in read_csv_rows(file_path):
-            parsed = parse_empresa_row(row)
-            normalize_empresa_row(parsed)
-            total += 1
+            try:
+                parsed = parse_empresa_row(row)
+                normalized = normalize_empresa_row(parsed)
 
-            if total % 100_000 == 0:
-                _report(on_progress, f"EMPRESAS: {total:,} linhas processadas")
+                if normalized is None:
+                    errors += 1
+                    continue
+
+                total += 1
+
+                if total % 100_000 == 0:
+                    _report(
+                        on_progress,
+                        f"EMPRESAS: {total:,} linhas processadas",
+                    )
+
+            except Exception as exc:
+                errors += 1
+
+                if errors <= 10 or errors % 1_000 == 0:
+                    _report(
+                        on_progress,
+                        f"EMPRESAS: erro #{errors:,}: {exc}",
+                    )
+                continue
+
+    if errors > 0:
+        _report(on_progress, f"EMPRESAS: {errors:,} linhas ignoradas por erro")
 
     return total
 
@@ -94,17 +117,46 @@ def _normalize_estabelecimentos_files(
     on_progress: Callable[[str], None] | None = None,
 ) -> int:
     total = 0
+    errors = 0
 
     for file_path in files:
-        _report(on_progress, f"Normalizando ESTABELECIMENTOS: {file_path.name}")
+        _report(
+            on_progress,
+            f"Normalizando ESTABELECIMENTOS: {file_path.name}",
+        )
 
         for row in read_csv_rows(file_path):
-            parsed = parse_estabelecimento_row(row)
-            normalize_estabelecimento_row(parsed)
-            total += 1
+            try:
+                parsed = parse_estabelecimento_row(row)
+                normalized = normalize_estabelecimento_row(parsed)
 
-            if total % 100_000 == 0:
-                _report(on_progress, f"ESTABELECIMENTOS: {total:,} linhas processadas")
+                if normalized is None:
+                    errors += 1
+                    continue
+
+                total += 1
+
+                if total % 100_000 == 0:
+                    _report(
+                        on_progress,
+                        f"ESTABELECIMENTOS: {total:,} linhas processadas",
+                    )
+
+            except Exception as exc:
+                errors += 1
+
+                if errors <= 10 or errors % 1_000 == 0:
+                    _report(
+                        on_progress,
+                        f"ESTABELECIMENTOS: erro #{errors:,}: {exc}",
+                    )
+                continue
+
+    if errors > 0:
+        _report(
+            on_progress,
+            f"ESTABELECIMENTOS: {errors:,} linhas ignoradas por erro",
+        )
 
     return total
 
@@ -114,17 +166,40 @@ def _normalize_socios_files(
     on_progress: Callable[[str], None] | None = None,
 ) -> int:
     total = 0
+    errors = 0
 
     for file_path in files:
         _report(on_progress, f"Normalizando SOCIOS: {file_path.name}")
 
         for row in read_csv_rows(file_path):
-            parsed = parse_socio_row(row)
-            normalize_socio_row(parsed)
-            total += 1
+            try:
+                parsed = parse_socio_row(row)
+                normalized = normalize_socio_row(parsed)
 
-            if total % 100_000 == 0:
-                _report(on_progress, f"SOCIOS: {total:,} linhas processadas")
+                if normalized is None:
+                    errors += 1
+                    continue
+
+                total += 1
+
+                if total % 100_000 == 0:
+                    _report(
+                        on_progress,
+                        f"SOCIOS: {total:,} linhas processadas",
+                    )
+
+            except Exception as exc:
+                errors += 1
+
+                if errors <= 10 or errors % 1_000 == 0:
+                    _report(
+                        on_progress,
+                        f"SOCIOS: erro #{errors:,}: {exc}",
+                    )
+                continue
+
+    if errors > 0:
+        _report(on_progress, f"SOCIOS: {errors:,} linhas ignoradas por erro")
 
     return total
 
@@ -134,16 +209,39 @@ def _normalize_simples_files(
     on_progress: Callable[[str], None] | None = None,
 ) -> int:
     total = 0
+    errors = 0
 
     for file_path in files:
         _report(on_progress, f"Normalizando SIMPLES: {file_path.name}")
 
         for row in read_csv_rows(file_path):
-            parsed = parse_simples_row(row)
-            normalize_simples_row(parsed)
-            total += 1
+            try:
+                parsed = parse_simples_row(row)
+                normalized = normalize_simples_row(parsed)
 
-            if total % 100_000 == 0:
-                _report(on_progress, f"SIMPLES: {total:,} linhas processadas")
+                if normalized is None:
+                    errors += 1
+                    continue
+
+                total += 1
+
+                if total % 100_000 == 0:
+                    _report(
+                        on_progress,
+                        f"SIMPLES: {total:,} linhas processadas",
+                    )
+
+            except Exception as exc:
+                errors += 1
+
+                if errors <= 10 or errors % 1_000 == 0:
+                    _report(
+                        on_progress,
+                        f"SIMPLES: erro #{errors:,}: {exc}",
+                    )
+                continue
+
+    if errors > 0:
+        _report(on_progress, f"SIMPLES: {errors:,} linhas ignoradas por erro")
 
     return total

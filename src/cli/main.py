@@ -6,6 +6,7 @@ from src.core.extracted_batch import summarize_extracted_batch, ExtractedBatchSu
     ExtractedBatchValidationError
 from src.core.extraction import prepare_extracted_batch, ExtractedBatchPreparationError
 from src.core.input_batch import summarize_input_batch, validate_input_batch, InputBatchSummary
+from src.core.percistence import PersistenceSummary, PersistenceError, persist_required_files
 from src.core.required_files_validation import validate_required_files_structure, RequiredFilesStructureValidationError
 from src.core.normalization import normalize_required_files, NormalizationError, NormalizationSummary
 
@@ -32,7 +33,11 @@ def run() -> None:
     typer.secho("[6/7] Normalizando dados...", fg=typer.colors.BLUE)
     normalization_summary = _phase_normalize_required_files(extracted_summary)
 
-    typer.secho("[5/7] Inserindo no banco de dados...", fg=typer.colors.BLUE)
+    typer.secho("[7/7] Inserindo no banco de dados...", fg=typer.colors.BLUE)
+    persistence_summary = _phase_persist_required_files(
+        input_summary=input_summary,
+        extracted_summary=extracted_summary,
+    )
 
 
 
@@ -146,9 +151,7 @@ def _phase_validate_required_files_structure(extracted_summary: ExtractedBatchSu
 
 
 
-def _phase_normalize_required_files(
-    extracted_summary: ExtractedBatchSummary,
-) -> NormalizationSummary:
+def _phase_normalize_required_files(extracted_summary: ExtractedBatchSummary) -> NormalizationSummary:
     try:
         summary = normalize_required_files(
             extracted_summary,
@@ -167,6 +170,36 @@ def _phase_normalize_required_files(
     )
 
     return summary
+
+
+
+def _phase_persist_required_files(
+    input_summary: InputBatchSummary,
+    extracted_summary: ExtractedBatchSummary,
+) -> PersistenceSummary:
+    try:
+        summary = persist_required_files(
+            input_summary=input_summary,
+            extracted_summary=extracted_summary,
+            on_progress=lambda message: typer.secho(
+                f"    - {message}",
+                fg=typer.colors.GREEN,
+            ),
+        )
+    except PersistenceError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+
+    typer.secho(
+        (
+            "    - Persistência concluída. "
+            f"Empresas: {summary.empresas_count:,}"
+        ),
+        fg=typer.colors.GREEN,
+    )
+
+    return summary
+
 
 
 

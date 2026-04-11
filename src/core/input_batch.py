@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
+import re
 
 
 @dataclass
@@ -22,6 +23,24 @@ class InputBatchSummary:
             return self.zip_files[0]
         return None
 
+    @property
+    def selected_zip_file_required(self) -> Path:
+        file_path = self.selected_zip_file
+        if file_path is None:
+            raise ValueError("Nenhum arquivo zip único selecionado.")
+        return file_path
+
+    @property
+    def reference(self) -> str:
+        file_name = self.selected_zip_file_required.name
+
+        match = re.search(r"(20\d{2}-\d{2})", file_name)
+        if match:
+            return match.group(1)
+
+        raise ValueError(
+            f"Não foi possível extrair a referência YYYY-MM do arquivo: {file_name}"
+        )
 
 
 def list_input_files(input_dir: Path) -> list[Path]:
@@ -32,7 +51,6 @@ def list_input_files(input_dir: Path) -> list[Path]:
         raise NotADirectoryError(f"O caminho não é uma pasta: {input_dir}")
 
     return sorted([file for file in input_dir.iterdir() if file.is_file()])
-
 
 
 def summarize_input_batch(input_dir: Path) -> InputBatchSummary:
@@ -52,7 +70,6 @@ def summarize_input_batch(input_dir: Path) -> InputBatchSummary:
         zip_files=zip_files,
         other_files=other_files,
     )
-
 
 
 def validate_input_batch(summary: InputBatchSummary) -> None:

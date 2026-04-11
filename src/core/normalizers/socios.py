@@ -12,7 +12,7 @@ from src.core.normalizers.common import (
 from src.core.parsers.socios import SocioRow
 
 
-def normalize_socio_row(row: SocioRow) -> SocioNormalized:
+def normalize_socio_row(row: SocioRow) -> SocioNormalized | None:
     cnpj_basico = require_digits(
         row.cnpj_basico,
         field_name="cnpj_basico",
@@ -21,16 +21,9 @@ def normalize_socio_row(row: SocioRow) -> SocioNormalized:
 
     nome_socio_razao_social = normalize_text(row.nome_socio_razao_social)
     if nome_socio_razao_social is None:
-        raise ValueError("nome_socio_razao_social é obrigatório")
+        return None
 
-    documento_socio = normalize_digits(row.cpf_cnpj_socio)
-    if documento_socio is not None:
-        if len(documento_socio) == 11:
-            documento_socio = compose_cpf(documento_socio)
-        elif len(documento_socio) == 14:
-            documento_socio = compose_cnpj_optional(documento_socio)
-        else:
-            raise ValueError(f"cpf_cnpj_socio inválido: {row.cpf_cnpj_socio}")
+    documento_socio = _normalize_documento_socio(row.cpf_cnpj_socio)
 
     return SocioNormalized(
         cnpj_basico=cnpj_basico,
@@ -49,3 +42,23 @@ def normalize_socio_row(row: SocioRow) -> SocioNormalized:
         ),
         faixa_etaria=normalize_digits(row.faixa_etaria),
     )
+
+
+def _normalize_documento_socio(value: str | None) -> str | None:
+    digits = normalize_digits(value)
+
+    if digits is None:
+        return None
+
+    if set(digits) == {"0"}:
+        return None
+
+    if len(digits) == 11:
+        return compose_cpf(digits)
+
+    if len(digits) == 14:
+        return compose_cnpj_optional(digits)
+
+    # Documento mascarado, truncado ou parcialmente anonimizado.
+    # Ex.: ***069106**
+    return None
