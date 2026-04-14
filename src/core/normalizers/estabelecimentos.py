@@ -5,7 +5,9 @@ from src.core.normalizers.common import (
     compose_cnpj,
     normalize_date_yyyymmdd,
     normalize_digits,
+    normalize_digits_with_max_length,
     normalize_text,
+    normalize_uf,
     require_digits,
 )
 from src.core.parsers.estabelecimentos import EstabelecimentoRow
@@ -61,34 +63,69 @@ def normalize_estabelecimento_row(
         cnpj_ordem=cnpj_ordem,
         cnpj_dv=cnpj_dv,
         cnpj=cnpj,
-        identificador_matriz_filial=normalize_digits(
-            row.identificador_matriz_filial
+        identificador_matriz_filial=normalize_digits_with_max_length(
+            row.identificador_matriz_filial,
+            max_length=1,
         ),
         nome_fantasia=normalize_text(row.nome_fantasia),
-        situacao_cadastral=normalize_digits(row.situacao_cadastral),
+        situacao_cadastral=normalize_digits_with_max_length(
+            row.situacao_cadastral,
+            max_length=2,
+        ),
         data_situacao_cadastral=data_situacao_cadastral,
-        motivo_situacao_cadastral=normalize_digits(
-            row.motivo_situacao_cadastral
+        motivo_situacao_cadastral=normalize_digits_with_max_length(
+            row.motivo_situacao_cadastral,
+            max_length=2,
         ),
         nome_cidade_exterior=normalize_text(row.nome_cidade_exterior),
-        pais=normalize_digits(row.pais),
+        pais=normalize_digits_with_max_length(
+            row.pais,
+            max_length=3,
+        ),
         data_inicio_atividade=data_inicio_atividade,
-        cnae_fiscal_principal=normalize_digits(row.cnae_fiscal_principal),
+        cnae_fiscal_principal=normalize_digits_with_max_length(
+            row.cnae_fiscal_principal,
+            max_length=7,
+        ),
         cnae_fiscal_secundaria=normalize_text(row.cnae_fiscal_secundaria),
         tipo_logradouro=normalize_text(row.tipo_logradouro),
         logradouro=normalize_text(row.logradouro),
         numero=normalize_text(row.numero),
         complemento=normalize_text(row.complemento),
         bairro=normalize_text(row.bairro),
-        cep=normalize_digits(row.cep),
-        uf=normalize_text(row.uf),
-        municipio=normalize_digits(row.municipio),
-        ddd_1=normalize_digits(row.ddd_1),
-        telefone_1=normalize_digits(row.telefone_1),
-        ddd_2=normalize_digits(row.ddd_2),
-        telefone_2=normalize_digits(row.telefone_2),
-        ddd_fax=normalize_digits(row.ddd_fax),
-        fax=normalize_digits(row.fax),
+        cep=normalize_digits_with_max_length(
+            row.cep,
+            max_length=8,
+        ),
+        uf=normalize_uf(row.uf),
+        municipio=normalize_digits_with_max_length(
+            row.municipio,
+            max_length=4,
+        ),
+        ddd_1=normalize_digits_with_max_length(
+            row.ddd_1,
+            max_length=2,
+        ),
+        telefone_1=normalize_digits_with_max_length(
+            row.telefone_1,
+            max_length=9,
+        ),
+        ddd_2=normalize_digits_with_max_length(
+            row.ddd_2,
+            max_length=2,
+        ),
+        telefone_2=normalize_digits_with_max_length(
+            row.telefone_2,
+            max_length=9,
+        ),
+        ddd_fax=normalize_digits_with_max_length(
+            row.ddd_fax,
+            max_length=2,
+        ),
+        fax=normalize_digits_with_max_length(
+            row.fax,
+            max_length=9,
+        ),
         correio_eletronico=normalize_text(row.correio_eletronico),
         situacao_especial=normalize_text(row.situacao_especial),
         data_situacao_especial=data_situacao_especial,

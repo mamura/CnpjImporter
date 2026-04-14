@@ -9,6 +9,7 @@ from src.core.input_batch import summarize_input_batch, validate_input_batch, In
 from src.core.persistence import PersistenceSummary, PersistenceError, persist_required_files
 from src.core.required_files_validation import validate_required_files_structure, RequiredFilesStructureValidationError
 from src.core.normalization import normalize_required_files, NormalizationError, NormalizationSummary
+from src.config.settings import settings
 
 app = typer.Typer(help="Ferramenta local de importação de dados de CNPJ.")
 
@@ -38,6 +39,38 @@ def run() -> None:
         input_summary=input_summary,
         extracted_summary=extracted_summary,
     )
+
+
+
+@app.command("persist")
+def persist() -> None:
+    typer.secho("[1/1] Inserindo no banco de dados...", fg=typer.colors.BLUE)
+
+    try:
+        input_summary = summarize_input_batch(settings.input_dir)
+        validate_input_batch(input_summary)
+
+        reference_dir = settings.extracted_dir / input_summary.reference
+
+        extracted_summary = summarize_extracted_batch(reference_dir)
+        validate_extracted_batch(extracted_summary)
+
+        persistence_summary = _phase_persist_required_files(
+            input_summary=input_summary,
+            extracted_summary=extracted_summary,
+        )
+
+        typer.secho(
+            (
+                "Persistência concluída com sucesso. "
+                f"Total: {persistence_summary.total_count:,}"
+            ),
+            fg=typer.colors.GREEN,
+        )
+
+    except Exception as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1)
 
 
 

@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from decimal import Decimal
-
 from psycopg import Connection
-from psycopg.extras import execute_batch
-
 from src.core.dto.empresas import EmpresaNormalized
 
 
@@ -54,8 +51,7 @@ class EmpresasWriter:
         rows: list[dict[str, str | Decimal | None | bool]],
     ) -> int:
         with self._conn.cursor() as cur:
-            execute_batch(
-                cur,
+            cur.executemany(
                 """
                 insert into cnpj.empresas (
                     cnpj_basico,
@@ -91,7 +87,6 @@ class EmpresasWriter:
                     ativo = true
                 """,
                 rows,
-                page_size=self._batch_size,
             )
 
         return len(rows)
